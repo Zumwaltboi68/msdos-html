@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MS-DOS Emulator</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: black;
+      color: green;
+    }
+
+    #screen {
+      width: 640px;
+      height: 480px;
+      background-color: black;
+    }
+  </style>
+</head>
+<body>
+  <div id="screen"></div>
+  <script>
+    // Define the virtual machine
+    class VM {
+      constructor() {
+        this.memory = new Uint8Array(64 * 1024); // 64KB of memory
+        this.registers = {
+          ax: 0,
+          bx: 0,
+          cx: 0,
+          dx: 0
+        };
+        this.pc = 0;
+        this.sp = 0;
+        this.flags = {
+          carry: false,
+          parity: false,
+          zero: false,
+          sign: false
+        };
+      }
+
+      // Reset the virtual machine
+      reset() {
+        this.registers.ax = 0;
+        this.registers.bx = 0;
+        this.registers.cx = 0;
+        this.registers.dx = 0;
+        this.pc = 0;
+        this.sp = 0;
+        this.flags.carry = false;
+        this.flags.parity = false;
+        this.flags.zero = false;
+        this.flags.sign = false;
+      }
+
+      // Fetch the next instruction
+      fetch() {
+        return this.memory[this.pc++];
+      }
+
+      // Decode the instruction
+      decode(instruction) {
+        switch (instruction) {
+          case 0x00: // NOP
+            break;
+          case 0x01: // MOV AX, BX
+            this.registers.ax = this.registers.bx;
+            break;
+          case 0x02: // MOV BX, AX
+            this.registers.bx = this.registers.ax;
+            break;
+          case 0x03: // MOV CX, AX
+            this.registers.cx = this.registers.ax;
+            break;
+          case 0x04: // MOV DX, AX
+            this.registers.dx = this.registers.ax;
+            break;
+          case 0x05: // MOV AX, CX
+            this.registers.ax = this.registers.cx;
+            break;
+          case 0x06: // MOV BX, CX
+            this.registers.bx = this.registers.cx;
+            break;
+          case 0x07: // MOV CX, DX
+            this.registers.cx = this.registers.dx;
+            break;
+          case 0x08: // MOV DX, CX
+            this.registers.dx = this.registers.cx;
+            break;
+          case 0x09: // MOV AX, DX
+            this.registers.ax = this.registers.dx;
+            break;
+          case 0x0A: // MOV BX, DX
+            this.registers.bx = this.registers.dx;
+            break;
+          case 0x0B: // MOV CX, BX
+            this.registers.cx = this.registers.bx;
+            break;
+          case 0x0C: // MOV DX, BX
+            this.registers.dx = this.registers.bx;
+            break;
+          case 0x0D: // ADD AX, BX
+            this.registers.ax += this.registers.bx;
+            this.updateFlags(this.registers.ax);
+            break;
+          case 0x0E: // ADD BX, AX
+            this.registers.bx += this.registers.ax;
+            this.updateFlags(this.registers.bx);
+            break;
+          case 0x0F: // ADD CX, AX
+            this.registers.cx += this.registers.ax;
+            this.updateFlags(this.registers.cx);
+            break;
+          case 0x10: // ADD DX, AX
+            this.registers.dx += this.registers.ax;
+            this.updateFlags(this.registers.dx);
+            break;
+          case 0x11: // ADD AX, CX
+            this.registers.ax += this.registers.cx;
+            this.updateFlags(this.registers.ax);
+            break;
+          case 0x12: // ADD BX, CX
+            this.registers.bx += this.registers.cx;
+            this.updateFlags(this.registers.bx);
+            break;
+          case 0x13: // ADD CX, DX
+            this.registers.cx += this.registers.dx;
+            this.updateFlags(this.registers.cx);
+            break;
+          case 0x14: // ADD DX, CX
+            this.registers.dx += this.registers.cx;
+            this.updateFlags(this.registers.dx);
+            break;
+          // ...
+        }
+      }
+
+      // Execute the instruction
+      execute() {
+        const instruction = this.fetch();
+        this.decode(instruction);
+      }
+
+      // Update the flags
+      updateFlags(value) {
+        this.flags.carry = (value > 0xFFFF);
+        this.flags.parity = ((value & 0x00FF) ^ (value >> 8)) & 1;
+        this.flags.zero = (value == 0);
+        this.flags.sign = (value & 0x8000);
+      }
+
+      // Load the program into memory
+      loadProgram(program) {
+        for (let i = 0; i < program.length; i++) {
+          this.memory[i] = program[i];
+        }
+      }
+
+      // Run the program
+      run() {
+        while (true) {
+          this.execute();
+        }
+      }
+    }
+
+    // Create a new virtual machine
+    const vm = new VM();
+
+    // Load the program into memory
+    vm.loadProgram([
+      0x00, // NOP
+      0x01, // MOV AX, BX
+      0x02, // MOV BX, AX
+      0x03, // MOV CX, AX
+      0x04, // MOV DX, AX
+      // ...
+    ]);
+
+    // Run the program
+    vm.run();
+  </script>
+</body>
+</html>
